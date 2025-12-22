@@ -1,0 +1,553 @@
+import 'package:flutter/material.dart';
+import 'package:onlog_shared/onlog_shared.dart';
+
+class CallCourierScreen extends StatefulWidget {
+  final String merchantId;
+  final String merchantName;
+  final Map<String, dynamic> merchantLocation;
+
+  const CallCourierScreen({
+    super.key,
+    required this.merchantId,
+    required this.merchantName,
+    required this.merchantLocation,
+  });
+
+  @override
+  State<CallCourierScreen> createState() => _CallCourierScreenState();
+}
+
+class _CallCourierScreenState extends State<CallCourierScreen> {
+  int _packageCount = 1;
+  final _amountController = TextEditingController();
+  final _notesController = TextEditingController();
+  bool _isLoading = false;
+
+  @override
+  void dispose() {
+    _amountController.dispose();
+    _notesController.dispose();
+    super.dispose();
+  }
+
+  void _incrementPackage() {
+    if (_packageCount < 50) {
+      setState(() => _packageCount++);
+    }
+  }
+
+  void _decrementPackage() {
+    if (_packageCount > 1) {
+      setState(() => _packageCount--);
+    }
+  }
+
+  Future<void> _callCourier() async {
+    // Tutar kontrolü - ZORUNLU!
+    if (_amountController.text.trim().isEmpty) {
+      _showError('Lütfen toplam tutarı giriniz!');
+      return;
+    }
+
+    final amount = double.tryParse(_amountController.text.trim());
+    if (amount == null || amount <= 0) {
+      _showError('Geçerli bir tutar giriniz!');
+      return;
+    }
+
+    setState(() => _isLoading = true);
+
+    try {
+      print('🔵 KURYE ÇAĞIRILIYOR:');
+      print('  merchantId: ${widget.merchantId}');
+      print('  merchantName: ${widget.merchantName}');
+      print('  merchantLocation: ${widget.merchantLocation}');
+      print('  packageCount: $_packageCount');
+      print('  declaredAmount: $amount');
+      print('  notes: ${_notesController.text.trim()}');
+      
+      // Supabase'e kurye çağrısı kaydet
+      final deliveryData = await SupabaseService.client
+          .from('deliveries')
+          .insert({
+        'merchant_id': widget.merchantId,
+        'status': 'pending',
+        'notes': _notesController.text.trim(),
+        'created_at': DateTime.now().toIso8601String(),
+      }).select().single();
+
+      final deliveryId = deliveryData['id'];
+
+      // Finansal işlem kaydı oluştur
+      await SupabaseService.client
+          .from('financial_transactions')
+          .insert({
+        'delivery_id': deliveryId,
+        'type': 'delivery_payment',
+        'merchant_id': widget.merchantId,
+        'amount': amount,
+        'courierCollectedAmount': null,
+        'discrepancy': 0.0,
+        'flagged': false,
+        
+        // Komisyon (kurye atandıktan sonra hesaplanacak)
+        'commissionRate': null,
+        'courierEarning': null,
+        'companyRevenue': null,
+        
+        // Ödeme durumu
+        'merchantPaymentStatus': 'pending',
+        'merchantPaymentDue': DateTime.now().add(const Duration(days: 7)),
+        'courierPaymentStatus': 'pending',
+        'courierPaymentDue': null,
+        
+        // Kanıt
+        'deliveryProofUrl': null,
+        'createdAt': FieldValue.serverTimestamp(),
+      });
+
+      if (!mounted) return;
+      
+      // Başarı mesajı
+      showDialog(
+        context: context,
+        barrierDismissible: false,
+        builder: (context) => AlertDialog(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+          ),
+          title: Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: Colors.green[100],
+                  shape: BoxShape.circle,
+                ),
+                child: const Icon(Icons.check, color: Colors.green, size: 32),
+              ),
+              const SizedBox(width: 12),
+              const Text('Kurye Çağrısı Gönderildi!'),
+            ],
+          ),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text('📦 Paket Sayısı: $_packageCount'),
+              Text('💰 Tutar: ${amount.toStringAsFixed(2)}₺'),
+              const SizedBox(height: 12),
+              Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: Colors.blue[50],
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: const Row(
+                  children: [
+                    Icon(Icons.info_outline, color: Colors.blue, size: 20),
+                    SizedBox(width: 8),
+                    Expanded(
+                      child: Text(
+                        'En yakın kuryeler bilgilendirildi. Kabul eden kurye size atanacak.',
+                        style: TextStyle(fontSize: 12),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+          actions: [
+            ElevatedButton(
+              onPressed: () {
+                Navigator.pop(context); // Dialog kapat
+                Navigator.pop(context); // Screen kapat
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.green,
+                foregroundColor: Colors.white,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(8),
+                ),
+              ),
+              child: const Text('Tamam'),
+            ),
+          ],
+        ),
+      );
+    } catch (e) {
+      if (!mounted) return;
+      _showError('Hata: $e');
+    } finally {
+      if (mounted) {
+        setState(() => _isLoading = false);
+      }
+    }
+  }
+
+  void _showError(String message) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('⚠️ Uyarı'),
+        content: Text(message),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Tamam'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: Colors.grey[100],
+      appBar: AppBar(
+        title: const Text('🚴 Kurye Çağır'),
+        backgroundColor: Colors.green[600],
+        foregroundColor: Colors.white,
+        elevation: 0,
+      ),
+      body: SingleChildScrollView(
+        padding: const EdgeInsets.all(20),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            // Konum Bilgisi
+            Container(
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(12),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.05),
+                    blurRadius: 10,
+                    offset: const Offset(0, 2),
+                  ),
+                ],
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      Icon(Icons.location_on, color: Colors.green[600]),
+                      const SizedBox(width: 8),
+                      const Text(
+                        'Teslimat Konumu',
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    widget.merchantName,
+                    style: const TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    widget.merchantLocation['address'] ?? 'Adres bilgisi yok',
+                    style: TextStyle(
+                      fontSize: 14,
+                      color: Colors.grey[600],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+
+            const SizedBox(height: 24),
+
+            // Paket Sayısı
+            Container(
+              padding: const EdgeInsets.all(20),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(12),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.05),
+                    blurRadius: 10,
+                    offset: const Offset(0, 2),
+                  ),
+                ],
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      Icon(Icons.inventory_2_outlined, color: Colors.orange[600]),
+                      const SizedBox(width: 8),
+                      const Text(
+                        'Paket Sayısı',
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 16),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      // Azalt Butonu
+                      IconButton(
+                        onPressed: _decrementPackage,
+                        icon: const Icon(Icons.remove_circle_outline),
+                        iconSize: 48,
+                        color: _packageCount > 1 ? Colors.red : Colors.grey,
+                      ),
+                      
+                      // Sayı Gösterimi
+                      Container(
+                        width: 100,
+                        padding: const EdgeInsets.symmetric(vertical: 12),
+                        decoration: BoxDecoration(
+                          color: Colors.green[50],
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(color: Colors.green[200]!, width: 2),
+                        ),
+                        child: Text(
+                          '$_packageCount',
+                          textAlign: TextAlign.center,
+                          style: TextStyle(
+                            fontSize: 36,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.green[700],
+                          ),
+                        ),
+                      ),
+                      
+                      // Arttır Butonu
+                      IconButton(
+                        onPressed: _incrementPackage,
+                        icon: const Icon(Icons.add_circle_outline),
+                        iconSize: 48,
+                        color: Colors.green,
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    'Paket',
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                      fontSize: 14,
+                      color: Colors.grey[600],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+
+            const SizedBox(height: 24),
+
+            // Tutar - ZORUNLU!
+            Container(
+              padding: const EdgeInsets.all(20),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(12),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.05),
+                    blurRadius: 10,
+                    offset: const Offset(0, 2),
+                  ),
+                ],
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      Icon(Icons.attach_money, color: Colors.blue[600]),
+                      const SizedBox(width: 8),
+                      const Text(
+                        'Toplam Tutar',
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 8,
+                          vertical: 2,
+                        ),
+                        decoration: BoxDecoration(
+                          color: Colors.red[100],
+                          borderRadius: BorderRadius.circular(4),
+                        ),
+                        child: Text(
+                          'ZORUNLU',
+                          style: TextStyle(
+                            fontSize: 10,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.red[700],
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 12),
+                  TextField(
+                    controller: _amountController,
+                    keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                    style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+                    decoration: InputDecoration(
+                      prefixText: '₺ ',
+                      prefixStyle: TextStyle(
+                        fontSize: 24,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.grey[700],
+                      ),
+                      hintText: '0.00',
+                      filled: true,
+                      fillColor: Colors.blue[50],
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        borderSide: BorderSide.none,
+                      ),
+                      focusedBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        borderSide: BorderSide(color: Colors.blue[600]!, width: 2),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  Container(
+                    padding: const EdgeInsets.all(8),
+                    decoration: BoxDecoration(
+                      color: Colors.yellow[50],
+                      borderRadius: BorderRadius.circular(8),
+                      border: Border.all(color: Colors.yellow[700]!),
+                    ),
+                    child: Row(
+                      children: [
+                        Icon(Icons.info_outline, size: 16, color: Colors.yellow[900]),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: Text(
+                            'Kurye alacağı tutarı girmeyi unutmayın!',
+                            style: TextStyle(
+                              fontSize: 12,
+                              color: Colors.yellow[900],
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+
+            const SizedBox(height: 24),
+
+            // Notlar (Opsiyonel)
+            Container(
+              padding: const EdgeInsets.all(20),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(12),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.05),
+                    blurRadius: 10,
+                    offset: const Offset(0, 2),
+                  ),
+                ],
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      Icon(Icons.note_outlined, color: Colors.purple[600]),
+                      const SizedBox(width: 8),
+                      const Text(
+                        'Notlar (Opsiyonel)',
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 12),
+                  TextField(
+                    controller: _notesController,
+                    maxLines: 3,
+                    decoration: InputDecoration(
+                      hintText: 'Örn: Kırılabilir ürün var, dikkatli taşınsın',
+                      filled: true,
+                      fillColor: Colors.grey[50],
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        borderSide: BorderSide.none,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+
+            const SizedBox(height: 32),
+
+            // Kurye Çağır Butonu
+            ElevatedButton(
+              onPressed: _isLoading ? null : _callCourier,
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.green[600],
+                foregroundColor: Colors.white,
+                padding: const EdgeInsets.symmetric(vertical: 20),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                elevation: 2,
+              ),
+              child: _isLoading
+                  ? const SizedBox(
+                      height: 24,
+                      width: 24,
+                      child: CircularProgressIndicator(
+                        color: Colors.white,
+                        strokeWidth: 2,
+                      ),
+                    )
+                  : Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        const Icon(Icons.delivery_dining, size: 28),
+                        const SizedBox(width: 12),
+                        Text(
+                          'KURYE ÇAĞIR - $_packageCount PAKET',
+                          style: const TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ],
+                    ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}

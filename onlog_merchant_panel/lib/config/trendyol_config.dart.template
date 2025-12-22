@@ -1,0 +1,78 @@
+/// Trendyol API Yapılandırması - TEMPLATE
+/// 
+/// 📋 KURULUM TALİMATLARI:
+/// 1. Bu dosyayı kopyala: trendyol_config.dart.template → trendyol_config.dart
+/// 2. trendyol_config.dart dosyasındaki YOUR_*_HERE değerlerini gerçek credentials ile değiştir
+/// 3. trendyol_config.dart dosyası .gitignore'da olduğundan git'e eklenmeyecek
+/// 
+/// 🔑 CREDENTİALS NEREDEN ALINABİLİR?
+/// 1. Trendyol Satıcı Paneli'ne giriş yap (https://partner.trendyol.com)
+/// 2. Sol menüden: Hesap Bilgilerim > Entegrasyon Bilgileri
+/// 3. Aşağıdaki bilgileri kopyala:
+///    - Supplier ID (Satıcı ID)
+///    - API Key (Kullanıcı Adı)
+///    - API Secret Key (Şifre)
+/// 
+/// ⚠️ UYARILAR:
+/// - API credentials'ı ASLA public repository'e push etme!
+/// - Production credentials ile dikkatli ol
+/// - IP Whitelisting gerekebilir (Trendyol Destek: 0850 258 58 00)
+/// 
+/// 🧪 TEST ORTAMI:
+/// - isProduction = false → STAGE ortamı (Test)
+/// - isProduction = true → PRODUCTION ortamı (Canlı)
+
+class TrendyolConfig {
+  // ========================================
+  // 🔐 BURAYA GERÇEK CREDENTİALS YAZILACAK
+  // ========================================
+  
+  /// Supplier ID (Satıcı ID)
+  /// Örnek: '107385'
+  static const String supplierId = 'YOUR_SUPPLIER_ID_HERE';
+  
+  /// API Key (Kullanıcı Adı)
+  /// Örnek: 'your-api-key-12345'
+  static const String apiKey = 'YOUR_API_KEY_HERE';
+  
+  /// API Secret Key (Şifre)
+  /// Örnek: 'your-secret-key-67890'
+  static const String apiSecretKey = 'YOUR_API_SECRET_KEY_HERE';
+  
+  /// Entegratör İsmi (İsteğe bağlı)
+  static const String entegratorName = 'OnlogMerchantPanel';
+  
+  // ========================================
+  // ENVIRONMENT
+  // ========================================
+  
+  /// false = STAGE (Test ortamı)
+  /// true = PRODUCTION (Canlı ortam)
+  static const bool isProduction = false;
+  
+  // ========================================
+  // VALIDATION
+  // ========================================
+  
+  static bool get isConfigured {
+    return supplierId != 'YOUR_SUPPLIER_ID_HERE' &&
+           apiKey != 'YOUR_API_KEY_HERE' &&
+           apiSecretKey != 'YOUR_API_SECRET_KEY_HERE' &&
+           supplierId.isNotEmpty &&
+           apiKey.isNotEmpty &&
+           apiSecretKey.isNotEmpty;
+  }
+  
+  static String get info {
+    if (!isConfigured) {
+      return '❌ Trendyol API credentials henüz ayarlanmadı!\n'
+             'lib/config/trendyol_config.dart dosyasını düzenleyin.';
+    }
+    
+    return '✅ Trendyol API Configured\n'
+           'Environment: ${isProduction ? "PRODUCTION" : "STAGE"}\n'
+           'Supplier ID: $supplierId\n'
+           'API Key: ${apiKey.substring(0, 4)}****\n'
+           'Entegrator: $entegratorName';
+  }
+}
