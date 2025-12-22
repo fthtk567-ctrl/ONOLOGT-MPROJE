@@ -33,3 +33,14 @@ Desktop.ini
 node_modules/
 **/node_modules/
 supabase/functions/node_modules/
+
+# Firebase Admin SDK Credentials (CRITICAL - GİZLİ!)
+*.json
+onlog-push-firebase-adminsdk-*.json
+send_test_notification.py
+google-services.json
+
+# API Keys (GİZLİ!)
+*_API_KEY_*.sql
+YEMEK_APP_*.md
+SQL_GOREV_3_API_KEY_SYSTEM.sql
