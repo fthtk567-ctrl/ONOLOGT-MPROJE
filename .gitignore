@@ -1,0 +1,35 @@
+# Flutter Build
+**/build/
+**/.dart_tool/
+**/.flutter-plugins
+**/.flutter-plugins-dependencies
+**/.packages
+**/.pub-cache/
+**/.pub/
+**/pubspec.lock
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# Windows
+Thumbs.db
+Desktop.ini
+
+# macOS
+.DS_Store
+._*
+
+# Logs
+*.log
+
+# Supabase (opsiyonel - credentials zaten kodda)
+# supabase/.env
+
+# Node modules
+node_modules/
+**/node_modules/
+supabase/functions/node_modules/

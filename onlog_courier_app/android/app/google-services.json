@@ -1,0 +1,48 @@
+{
+  "project_info": {
+    "project_number": "253730298253",
+    "project_id": "onlog-push",
+    "storage_bucket": "onlog-push.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:253730298253:android:b71bbeea64263ee21805c4",
+        "android_client_info": {
+          "package_name": "com.example.onlog_courier_app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBWO_lr-73AxfBlulvRD0W_wA0fzuTHAXg"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:253730298253:android:b39ff27339b7b7871805c4",
+        "android_client_info": {
+          "package_name": "com.onlog.onlog_courier_app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBWO_lr-73AxfBlulvRD0W_wA0fzuTHAXg"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

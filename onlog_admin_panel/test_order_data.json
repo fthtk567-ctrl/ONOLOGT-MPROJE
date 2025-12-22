@@ -1,0 +1,33 @@
+{
+  "restaurantId": "restaurant_001",
+  "restaurantName": "Pizza House",
+  "customerId": "customer_001",
+  "customerName": "Ahmet Yılmaz",
+  "customerAddress": "Atatürk Cad. No:123 Daire:5, Kadıköy, İstanbul",
+  "customerPhone": "+90 555 123 4567",
+  "platform": "trendyol",
+  "status": "preparing",
+  "totalAmount": 125.50,
+  "items": [
+    {
+      "name": "Margarita Pizza",
+      "quantity": 2,
+      "price": 45.00
+    },
+    {
+      "name": "Coca Cola 1L",
+      "quantity": 1,
+      "price": 15.50
+    },
+    {
+      "name": "Patates Kızartması",
+      "quantity": 1,
+      "price": 20.00
+    }
+  ],
+  "courierId": null,
+  "courierName": null,
+  "createdAt": "2025-10-13T14:30:00Z",
+  "updatedAt": "2025-10-13T14:30:00Z",
+  "deliveredAt": null
+}
