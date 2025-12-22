@@ -2,7 +2,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:onlog_shared/onlog_shared.dart';
 import 'package:geolocator/geolocator.dart';
-import '../../widgets/modern_order_card.dart';
+import '../../widgets/ultra_modern_order_card.dart'; // 🎨 Ultra modern kart
 import '../delivery_details_screen_supabase.dart';
 import '../../services/location_service.dart';
 
@@ -24,17 +24,23 @@ class HomeTabSupabase extends StatefulWidget {
 
 class _HomeTabSupabaseState extends State<HomeTabSupabase> {
   bool _isOnline = false;
-  // StreamSubscription kaldırıldı - artık global LocationService kullanılıyor
-
+  bool _isInitialized = false; // İlk yükleme kontrolü
+  bool _isLoadingStatus = true; // 🔧 Durum yüklenirken loading göster
+  
   @override
   void initState() {
     super.initState();
-    // Sadece global LocationService'in mevcut durumunu oku
-    _initializeFromGlobalService();
+    _initializeOnce();
   }
 
-  void _initializeFromGlobalService() async {
-    print('🔄 HomeTabSupabase başlatılıyor - Database\'den son durum çekiliyor...');
+  /// SADECE İLK KEZ database'den durum çek
+  void _initializeOnce() async {
+    if (_isInitialized) {
+      print('⏩ Sayfa zaten başlatılmış, database sorgusu atlanıyor');
+      return;
+    }
+    
+    print('🔄 İLK BAŞLATMA - Database\'den son durum çekiliyor...');
     
     try {
       // Database'den kurye'nin SON durumunu çek
@@ -47,8 +53,12 @@ class _HomeTabSupabaseState extends State<HomeTabSupabase> {
       final isAvailableInDB = response['is_available'] ?? false;
       print('📥 Database\'den gelen durum: is_available = $isAvailableInDB');
       
+      if (!mounted) return;
+      
       setState(() {
         _isOnline = isAvailableInDB;
+        _isInitialized = true; // Artık tekrar database sorgusu yok
+        _isLoadingStatus = false; // 🔧 Yükleme bitti
       });
       
       // Global LocationService'i database durumu ile senkronize et
@@ -64,6 +74,9 @@ class _HomeTabSupabaseState extends State<HomeTabSupabase> {
             courierId: widget.courierId,
             isAvailable: false,
           );
+          
+          if (!mounted) return;
+          
           setState(() {
             _isOnline = false;
           });
@@ -82,11 +95,16 @@ class _HomeTabSupabaseState extends State<HomeTabSupabase> {
         LocationService.setDutyStatus(false);
       }
       
-      print('✅ UI başlatıldı - _isOnline: $_isOnline (Database\'den restore edildi)');
+      print('✅ İLK BAŞLATMA TAMAMLANDI - _isOnline: $_isOnline');
     } catch (e) {
       print('❌ Database durumu çekilemedi: $e');
+      
+      if (!mounted) return;
+      
       setState(() {
-        _isOnline = false; // Hata durumunda offline başlat
+        _isOnline = false;
+        _isLoadingStatus = false; // 🔧 Hata durumunda da yükleme bitti
+        _isInitialized = true;
       });
     }
   }
@@ -265,7 +283,7 @@ class _HomeTabSupabaseState extends State<HomeTabSupabase> {
                   scale: 0.8, // Switch boyutunu küçült
                   child: Switch(
                     value: _isOnline,
-                    onChanged: (_) => _toggleOnlineStatus(),
+                    onChanged: _isLoadingStatus ? null : (_) => _toggleOnlineStatus(), // 🔧 Loading sırasında disabled
                     activeThumbColor: Colors.green,
                     materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
                   ),
@@ -275,7 +293,9 @@ class _HomeTabSupabaseState extends State<HomeTabSupabase> {
           ),
         ],
       ),
-      body: _isOnline ? _buildOnlineView() : _buildOfflineView(),
+      body: _isLoadingStatus 
+        ? const Center(child: CircularProgressIndicator()) // 🔧 Loading durumu
+        : (_isOnline ? _buildOnlineView() : _buildOfflineView()),
     );
   }
 
@@ -530,7 +550,7 @@ class _HomeTabSupabaseState extends State<HomeTabSupabase> {
                       ),
                       const SizedBox(height: 16),
                       ...myActiveOrders.map((order) {
-                        return ModernOrderCard(
+                        return UltraModernOrderCard( // 🎨 Modern kart
                           order: order,
                           onTap: () {
                             // Sipariş detay sayfasına git
@@ -626,7 +646,7 @@ class _HomeTabSupabaseState extends State<HomeTabSupabase> {
                       ),
                       const SizedBox(height: 16),
                       ...pendingRequests.map((order) {
-                        return ModernOrderCard(
+                        return UltraModernOrderCard( // 🎨 Modern kart
                           order: order,
                           onTap: () => _acceptOrder(order['id']),
                         );

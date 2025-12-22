@@ -31,14 +31,40 @@ class _CourierNavigationScreenState extends State<CourierNavigationScreen> {
   String _courierType = 'esnaf'; // Default değer
   bool _isLoadingCourierType = true;
   String _currentCourierName = ''; // Güncel kurye ismi
+  
+  // 🔧 SCREENS'İ STATE'TE SAKLA - HER BUILD'DE YENİDEN YARATMA!
+  late List<Widget> _screens;
 
   @override
   void initState() {
     super.initState();
     _currentCourierName = widget.courierName; // İlk değer
+    _initializeScreens(); // Ekranları BİR KEZ oluştur
     _loadCourierType();
     _initLocalNotifications();
     _setupNotificationListener();
+  }
+  
+  /// 📱 EKRANLARI BİR KEZ OLUŞTUR
+  void _initializeScreens() {
+    _screens = [
+      HomeTabSupabase(
+        key: const PageStorageKey('HomeTab'), // State'i koru
+        courierId: widget.courierId,
+        courierName: widget.courierName,
+      ),
+      EarningsScreenSupabase(
+        key: const PageStorageKey('EarningsTab'),
+        courierId: widget.courierId,
+      ),
+      ProblemsScreen(
+        key: const PageStorageKey('ProblemsTab'),
+        courierId: widget.courierId,
+      ),
+      const ProfileScreen(
+        key: PageStorageKey('ProfileTab'),
+      ),
+    ];
   }
 
   /// 🔄 Kurye ismini yenile
@@ -218,35 +244,8 @@ class _CourierNavigationScreenState extends State<CourierNavigationScreen> {
       );
     }
 
-    // SGK kuryeleri için 3 ekran (Teslimatlar, Performans, Profil)
-    // Esnaf kuryeleri için 3 ekran (Teslimatlar, Kazançlar, Profil)
-    final screens = _courierType == 'sgk'
-        ? [
-            HomeTabSupabase(
-              courierId: widget.courierId,
-              courierName: widget.courierName,
-            ),
-            PerformanceScreen(
-              courierId: widget.courierId,
-            ),
-            ProblemsScreen(
-              courierId: widget.courierId,
-            ),
-            const ProfileScreen(),
-          ]
-        : [
-            HomeTabSupabase(
-              courierId: widget.courierId,
-              courierName: widget.courierName,
-            ),
-            EarningsScreenSupabase(
-              courierId: widget.courierId,
-            ),
-            ProblemsScreen(
-              courierId: widget.courierId,
-            ),
-            const ProfileScreen(),
-          ];
+    // 🔧 ARTIK HER BUILD'DE YENİ WIDGET YARATMIYORUZ - STATE'TEKİ LİSTEYİ KULLAN
+    // screens değişkeni kaldırıldı - _screens kullanılıyor
 
     // SGK kuryeleri için Performans tab'ı, Esnaf için Kazançlar tab'ı
     final navigationItems = _courierType == 'sgk'
@@ -363,7 +362,10 @@ class _CourierNavigationScreenState extends State<CourierNavigationScreen> {
         foregroundColor: Colors.white,
         elevation: 2,
       ),
-      body: screens[_selectedIndex],
+      body: IndexedStack(
+        index: _selectedIndex,
+        children: _screens, // 🔧 TÜM WIDGET'LAR BELLEKTE KALIR!
+      ),
       bottomNavigationBar: BottomNavigationBar(
         currentIndex: _selectedIndex,
         onTap: (index) {

@@ -51,6 +51,8 @@
 	<string>Profil fotoğrafınızı değiştirmek ve belge yüklemek için galeri erişimi gerekiyor</string>
 	<key>NSMicrophoneUsageDescription</key>
 	<string>Video çekmek için mikrofon erişimi gerekiyor</string>
+	<key>OSUserNotificationUsageDescription</key>
+	<string>Yeni teslimat bildirimleri almak için izin gerekli</string>
 	<key>LSApplicationQueriesSchemes</key>
 	<array>
 		<string>tel</string>

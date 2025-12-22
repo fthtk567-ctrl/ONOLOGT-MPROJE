@@ -4,8 +4,7 @@ buildscript {
         mavenCentral()
     }
     dependencies {
-        // Google Services plugin for Firebase
-        classpath("com.google.gms:google-services:4.4.0")
+        // OneSignal kullanıyoruz (Firebase kaldırıldı)
     }
 }
 

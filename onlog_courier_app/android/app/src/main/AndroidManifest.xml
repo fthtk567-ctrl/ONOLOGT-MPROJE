@@ -91,15 +91,12 @@
             android:name="com.google.android.geo.API_KEY"
             android:value="AIzaSyBCU7J0J3KjMCZ5Ne0XJmZ0hpG16PknCq8" />
         
-        <!-- Firebase Cloud Messaging -->
+        <!-- OneSignal Notification Icon (FCM artık kullanılmıyor) -->
         <meta-data
-            android:name="com.google.firebase.messaging.default_notification_channel_id"
-            android:value="new_order_channel" />
-        <meta-data
-            android:name="com.google.firebase.messaging.default_notification_icon"
+            android:name="com.onesignal.NotificationIcon"
             android:resource="@drawable/ic_stat_courier_app_icon" />
         <meta-data
-            android:name="com.google.firebase.messaging.default_notification_color"
+            android:name="com.onesignal.NotificationAccentColor"
             android:resource="@android:color/holo_green_dark" />
     </application>
     <!-- Required to query activities that can process text, see:

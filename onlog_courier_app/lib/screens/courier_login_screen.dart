@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:onlog_shared/services/supabase_service.dart';
 import 'courier_navigation_screen.dart';
 import 'courier_type_selection_screen.dart';
-import '../main.dart' show saveFCMToken;
+import '../main.dart' show saveOneSignalPlayerId;
 import '../services/battery_optimization_helper.dart';
 
 class CourierLoginScreen extends StatefulWidget {
@@ -344,12 +344,12 @@ class _CourierLoginScreenState extends State<CourierLoginScreen> {
 
       print('✅ Son giriş zamanı güncellendi');
 
-      // FCM Token'ı kaydet (Push Notification için!)
+      // OneSignal Player ID'yi kaydet (Push Notification için!)
       try {
-        await saveFCMToken(userId);
-        print('✅ FCM Token kaydedildi');
+        await saveOneSignalPlayerId(userId);
+        print('✅ OneSignal Player ID kaydedildi');
       } catch (e) {
-        print('⚠️ FCM Token kaydetme hatası (devam ediliyor): $e');
+        print('⚠️ OneSignal Player ID kaydetme hatası (devam ediliyor): $e');
       }
 
       print('✅ Ana ekrana yönlendiriliyor...');

@@ -36,7 +36,19 @@ class _ChangePasswordScreenSupabaseState
     setState(() => _isLoading = true);
 
     try {
-      // Supabase Auth ile şifre güncelleme
+      // 1. Önce mevcut şifreyi doğrula (reauthentication)
+      final currentUser = SupabaseService.currentUser;
+      if (currentUser == null || currentUser.email == null) {
+        throw Exception('Kullanıcı oturumu bulunamadı');
+      }
+
+      // Mevcut şifre ile yeniden giriş yaparak doğrula
+      await SupabaseService.client.auth.signInWithPassword(
+        email: currentUser.email!,
+        password: _currentPasswordController.text.trim(),
+      );
+
+      // 2. Doğrulama başarılı, şimdi şifreyi güncelle
       await SupabaseService.client.auth.updateUser(
         UserAttributes(
           password: _newPasswordController.text.trim(),
@@ -60,6 +72,35 @@ class _ChangePasswordScreenSupabaseState
         );
         Navigator.pop(context);
       }
+    } on AuthException catch (e) {
+      if (mounted) {
+        String errorMessage = 'Şifre değiştirilemedi';
+        
+        // Hata mesajlarını Türkçeleştir
+        if (e.message.contains('Invalid login credentials') || 
+            e.message.contains('invalid_credentials')) {
+          errorMessage = 'Mevcut şifreniz hatalı';
+        } else if (e.message.contains('Password should be at least')) {
+          errorMessage = 'Yeni şifre en az 6 karakter olmalı';
+        } else if (e.message.contains('same_password')) {
+          errorMessage = 'Yeni şifre eski şifre ile aynı olamaz';
+        }
+        
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Row(
+              children: [
+                const Icon(Icons.error_outline, color: Colors.white),
+                const SizedBox(width: 12),
+                Expanded(child: Text(errorMessage)),
+              ],
+            ),
+            backgroundColor: Colors.red,
+            behavior: SnackBarBehavior.floating,
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+          ),
+        );
+      }
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -78,7 +119,9 @@ class _ChangePasswordScreenSupabaseState
         );
       }
     } finally {
-      setState(() => _isLoading = false);
+      if (mounted) {
+        setState(() => _isLoading = false);
+      }
     }
   }
 

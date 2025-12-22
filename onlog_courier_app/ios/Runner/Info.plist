@@ -45,5 +45,37 @@
 	<true/>
 	<key>UIApplicationSupportsIndirectInputEvents</key>
 	<true/>
+	<key>OSUserNotificationUsageDescription</key>
+	<string>Yeni teslimat bildirimleri almak için izin gerekiyor.</string>
+	<key>NSLocationWhenInUseUsageDescription</key>
+	<string>Teslimat sırasında konumunuzu müşteriye göstermek için konum izni gerekiyor.</string>
+	<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
+	<string>Arka planda çalışırken bile teslimat takibi için konum izni gerekiyor.</string>
+	<key>NSLocationAlwaysUsageDescription</key>
+	<string>Teslimatları takip edebilmek için sürekli konum izni gerekiyor.</string>
+	<key>NSCameraUsageDescription</key>
+	<string>Teslimat fotoğrafı çekmek için kamera izni gerekiyor.</string>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>Teslimat fotoğraflarını kaydetmek için galeri izni gerekiyor.</string>
+	<key>NSPhotoLibraryAddUsageDescription</key>
+	<string>Teslimat fotoğraflarını galeri kaydetmek için izin gerekiyor.</string>
+	<key>NSMicrophoneUsageDescription</key>
+	<string>Sesli not almak için mikrofon izni gerekiyor.</string>
+	<key>NSBluetoothAlwaysUsageDescription</key>
+	<string>Akıllı cihazlarla bağlantı için Bluetooth izni gerekiyor.</string>
+	<key>NSMotionUsageDescription</key>
+	<string>Hareket takibi için sensör izni gerekiyor.</string>
+	<key>NSFaceIDUsageDescription</key>
+	<string>Güvenli giriş için Face ID kullanılıyor.</string>
+	<key>NSContactsUsageDescription</key>
+	<string>Müşteri iletişimi için rehber izni gerekiyor.</string>
+	<key>NSCalendarsUsageDescription</key>
+	<string>Teslimat randevuları için takvim izni gerekiyor.</string>
+	<key>UIBackgroundModes</key>
+	<array>
+		<string>location</string>
+		<string>fetch</string>
+		<string>remote-notification</string>
+	</array>
 </dict>
 </plist>

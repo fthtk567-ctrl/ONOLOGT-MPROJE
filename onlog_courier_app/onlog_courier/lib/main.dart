@@ -1,12 +1,20 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:onesignal_flutter/onesignal_flutter.dart';
 import 'flavors.dart';
 import 'screens/auth/login_screen.dart';
 import 'courier/widgets/courier_splash_screen.dart';
 import 'services/auth_service.dart';
 
-void main() {
+void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  
+  // OneSignal Initialization
+  OneSignal.Debug.setLogLevel(OSLogLevel.verbose);
+  OneSignal.initialize("8e0048f9-329e-49e3-ac4a-acb8e10a34ab");
+  
+  // Request notification permissions
+  OneSignal.Notifications.requestPermission(true);
   
   // Varsayılan olarak kurye modunu seçelim
   F.appFlavor = Flavor.courier;
