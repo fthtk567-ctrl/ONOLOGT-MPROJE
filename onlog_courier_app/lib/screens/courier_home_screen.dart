@@ -260,7 +260,7 @@ class _CourierHomeScreenState extends State<CourierHomeScreen> {
         .from('delivery_requests')
         .stream(primaryKey: ['id'])
         .eq('courier_id', widget.courierId)
-        .neq('status', 'rejected')  // ❌ RED EDİLENLERİ DİNLEME!
+        .is_('rejected_at', null)  // ❌ RED EDİLENLERİ DİNLEME!
         .listen((List<Map<String, dynamic>> data) {
           print('🔥 YENİ VERİ GELDİ! ${data.length} sipariş');
           
@@ -312,7 +312,7 @@ class _CourierHomeScreenState extends State<CourierHomeScreen> {
           .from('delivery_requests')
           .select()
           .eq('courier_id', widget.courierId)
-          .neq('status', 'rejected')  // ❌ RED EDİLENLERİ GETİRME!
+          .is_('rejected_at', null)  // ❌ RED EDİLENLERİ GETİRME!
           .order('created_at', ascending: false);
       
       final allOrders = List<Map<String, dynamic>>.from(response);
