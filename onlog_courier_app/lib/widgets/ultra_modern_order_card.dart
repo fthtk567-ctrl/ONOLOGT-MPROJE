@@ -543,11 +543,27 @@ class _UltraModernOrderCardState extends State<UltraModernOrderCard>
   }
 
   String _getDeliveryAddress() {
-    final deliveryAddress = widget.order['delivery_address'];
-    if (deliveryAddress is String && deliveryAddress.isNotEmpty) {
-      return deliveryAddress;
+    try {
+      // ✅ Database'de alan adı delivery_location (JSON object)
+      final deliveryLocation = widget.order['delivery_location'];
+      if (deliveryLocation is Map) {
+        final address = deliveryLocation['address'];
+        if (address != null && address.toString().isNotEmpty) {
+          return address.toString();
+        }
+      }
+      
+      // Fallback: Eski format (delivery_address string)
+      final deliveryAddress = widget.order['delivery_address'];
+      if (deliveryAddress is String && deliveryAddress.isNotEmpty) {
+        return deliveryAddress;
+      }
+      
+      return 'Adres bilgisi yok';
+    } catch (e) {
+      print('❌ Adres parse hatası: $e');
+      return 'Adres bilgisi yok';
     }
-    return 'Adres bilgisi yok';
   }
 
   Color _getStatusColor(String status) {
