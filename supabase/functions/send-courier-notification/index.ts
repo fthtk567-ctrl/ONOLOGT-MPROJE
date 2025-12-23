@@ -84,10 +84,13 @@ serve(async (req) => {
         delivery_address: payload.deliveryAddress,
         delivery_fee: payload.deliveryFee.toString(),
       },
+      // iOS ARKA PLAN BİLDİRİMLERİ için ZORUNLU ayarlar
       ios_badgeType: 'Increase',
       ios_badgeCount: 1,
-      priority: 10,
+      ios_sound: 'default',
+      mutable_content: true,
       content_available: true,
+      priority: 5,
     }
 
     console.log('📤 [OneSignal] Bildirim gönderiliyor...')

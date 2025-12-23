@@ -15,6 +15,19 @@ void main() async {
   // 1. OneSignal başlat
   OneSignal.Debug.setLogLevel(OSLogLevel.verbose);
   OneSignal.initialize("8e0048f9-329e-49e3-ac4a-acb8e10a34ab");
+  
+  // ARKA PLAN BİLDİRİMLERİ için handler (iOS için ZORUNLU!)
+  OneSignal.Notifications.addForegroundWillDisplayListener((event) {
+    debugPrint('🔔 Bildirim geldi (foreground): ${event.notification.title}');
+    event.preventDefault(); // Uygulamada gösterme, sistem göstersin
+    event.notification.display();
+  });
+  
+  OneSignal.Notifications.addClickListener((event) {
+    debugPrint('👆 Bildirime tıklandı: ${event.notification.additionalData}');
+    // TODO: Sipariş detay sayfasına git
+  });
+  
   OneSignal.Notifications.requestPermission(true);
   debugPrint('✅ OneSignal başlatıldı');
   
