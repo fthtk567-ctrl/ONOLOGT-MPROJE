@@ -260,14 +260,14 @@ class _CourierHomeScreenState extends State<CourierHomeScreen> {
         .from('delivery_requests')
         .stream(primaryKey: ['id'])
         .eq('courier_id', widget.courierId)
-        .is_('rejected_at', null)  // ❌ RED EDİLENLERİ DİNLEME!
         .listen((List<Map<String, dynamic>> data) {
           print('🔥 YENİ VERİ GELDİ! ${data.length} sipariş');
           
-          // 🔴 CLIENT-SIDE FİLTER: Sadece bu kuryeye atananları al
+          // 🔴 CLIENT-SIDE FİLTER: Red edilenleri çıkar
           final myOrders = data.where((order) {
             final courierId = order['courier_id'] as String?;
-            return courierId == widget.courierId;
+            final rejectedAt = order['rejected_at'];
+            return courierId == widget.courierId && rejectedAt == null;
           }).toList();
           
           print('✅ Bu kuryeye ait siparişler: ${myOrders.length}');

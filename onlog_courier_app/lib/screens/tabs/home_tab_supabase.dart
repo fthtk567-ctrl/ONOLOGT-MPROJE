@@ -427,7 +427,6 @@ class _HomeTabSupabaseState extends State<HomeTabSupabase> {
             .from('delivery_requests')
             .stream(primaryKey: ['id'])
             .eq('courier_id', widget.courierId)
-            .is_('rejected_at', null)  // ❌ RED EDİLENLERİ GÖSTERME!
             .order('created_at', ascending: false),
         builder: (context, myOrdersSnapshot) {
           return StreamBuilder<List<Map<String, dynamic>>>(
@@ -461,7 +460,10 @@ class _HomeTabSupabaseState extends State<HomeTabSupabase> {
               }
 
               final myActiveOrders = (myOrdersSnapshot.data ?? [])
-                  .where((o) => ['assigned', 'accepted', 'picked_up'].contains(o['status']))
+                  .where((o) => 
+                      ['assigned', 'accepted', 'picked_up'].contains(o['status']) &&
+                      o['rejected_at'] == null  // ❌ RED EDİLENLERİ GÖSTERME!
+                  )
                   .toList();
               final pendingRequests = pendingSnapshot.data ?? [];
 
