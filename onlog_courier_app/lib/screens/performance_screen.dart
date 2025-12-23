@@ -888,12 +888,13 @@ class _PerformanceScreenState extends State<PerformanceScreen> with SingleTicker
                         const Divider(height: 24),
                       ],
 
-                      // TESLİM ADRESİ
-                      if (delivery['delivery_address'] != null) ...[
+                      // TESLİM ADRESİ (delivery_location JSON'dan)
+                      if (delivery['delivery_location'] is Map && 
+                          delivery['delivery_location']['address'] != null) ...[
                         _buildDetailRow(
                           icon: Icons.home,
                           label: 'Teslimat Adresi',
-                          value: delivery['delivery_address'],
+                          value: delivery['delivery_location']['address'],
                           color: Colors.teal,
                         ),
                         const SizedBox(height: 12),

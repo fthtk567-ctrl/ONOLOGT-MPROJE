@@ -650,7 +650,16 @@ class _EarningsScreenSupabaseState extends State<EarningsScreenSupabase> {
     final createdAt = delivery['created_at'] != null
         ? DateTime.parse(delivery['created_at'])
         : DateTime.now();
-    final deliveryAddress = delivery['delivery_address'] ?? 'Adres bilgisi yok';
+    
+    // ✅ Database: delivery_location (JSON object)
+    String deliveryAddress = 'Adres bilgisi yok';
+    final deliveryLocation = delivery['delivery_location'];
+    if (deliveryLocation is Map && deliveryLocation['address'] != null) {
+      deliveryAddress = deliveryLocation['address'].toString();
+    } else if (delivery['delivery_address'] != null) {
+      // Fallback: eski format
+      deliveryAddress = delivery['delivery_address'].toString();
+    }
     
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
