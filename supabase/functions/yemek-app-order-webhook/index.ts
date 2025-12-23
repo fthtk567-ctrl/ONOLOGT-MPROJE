@@ -16,6 +16,35 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-yemek-app-signature',
 }
 
+// Yemek App ödeme yöntemlerini ONLOG formatına çevir
+function normalizePaymentMethod(yemekAppMethod: string): 'cash' | 'card' | 'online' {
+  const normalized = yemekAppMethod?.toLowerCase().trim() || ''
+  
+  console.log('[Payment Mapping] Input:', yemekAppMethod, '→ Normalized:', normalized)
+  
+  // Online ödeme (tam eşleşme önce kontrol et)
+  if (normalized === 'online') {
+    console.log('[Payment Mapping] Matched: ONLINE')
+    return 'online'
+  }
+  
+  // Kart ödeme (Yemek App format: "card_on_delivery")
+  if (normalized === 'card_on_delivery' || normalized === 'card' || normalized.includes('card_on') || normalized.includes('kart')) {
+    console.log('[Payment Mapping] Matched: CARD (from:', yemekAppMethod, ')')
+    return 'card'
+  }
+  
+  // Nakit ödeme
+  if (normalized === 'cash' || normalized.includes('nakit')) {
+    console.log('[Payment Mapping] Matched: CASH')
+    return 'cash'
+  }
+  
+  // Default: nakit (güvenli seçenek)
+  console.warn('[Payment Mapping] UNKNOWN METHOD - Defaulting to CASH:', yemekAppMethod)
+  return 'cash'
+}
+
 serve(async (req: Request) => {
   // CORS preflight
   if (req.method === 'OPTIONS') {
@@ -127,13 +156,13 @@ serve(async (req: Request) => {
       )
     }
 
-    if (!payload.payment_method || !['cash', 'online', 'card'].includes(payload.payment_method)) {
+    if (!payload.payment_method || !['cash', 'online', 'card', 'card_on_delivery'].includes(payload.payment_method)) {
       console.error('[Yemek App] REJECTED - Invalid payment method:', payload.payment_method)
       return new Response(
         JSON.stringify({ 
           success: false,
           error_code: 'INVALID_PAYMENT_METHOD',
-          message: 'Ödeme yöntemi zorunludur (cash, online, card)',
+          message: 'Ödeme yöntemi zorunludur (cash, online, card, card_on_delivery)',
           received_payment_method: payload.payment_method || null
         }),
         { 
@@ -191,6 +220,13 @@ serve(async (req: Request) => {
     const deliveryFee = 15.00
     const merchantCommission = payload.declared_amount * 0.20
     
+    // 5.5. Ödeme yöntemini normalize et (Yemek App formatından ONLOG formatına)
+    const normalizedPaymentMethod = normalizePaymentMethod(payload.payment_method)
+    console.log('[Yemek App] Payment method normalized:', {
+      original: payload.payment_method,
+      normalized: normalizedPaymentMethod
+    })
+    
     // 6. Delivery Request Oluştur
     const deliveryData = {
       merchant_id: mapping.onlog_merchant_id,
@@ -209,7 +245,7 @@ serve(async (req: Request) => {
       merchant_phone: payload.restaurant_phone || null,
       
       // ⭐ YENİ ALANLAR - Ödeme ve zaman
-      payment_method: payload.payment_method, // ✅ ZORUNLU - validasyon eklendi
+      payment_method: normalizedPaymentMethod, // ✅ NORMALIZE EDİLDİ
       estimated_delivery_time: payload.estimated_delivery_time || null,
       courier_type: 'esnaf', // Default esnaf
       

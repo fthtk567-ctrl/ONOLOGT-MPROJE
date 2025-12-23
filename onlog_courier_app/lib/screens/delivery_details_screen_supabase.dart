@@ -1047,10 +1047,38 @@ class _DeliveryDetailsScreenSupabaseState
     final amount = _orderData?['declared_amount'] ?? 0.0;
     final commission = _orderData?['merchant_commission'] ?? 0.0;
     final paymentStatus = _orderData?['payment_status'] ?? 'pending';
+    final paymentMethod = _orderData?['payment_method'] ?? 'cash'; // cash/card/online
     final status = _orderData?['status'] ?? '';
     
     // Teslimat tamamlanmadıysa kazanç henüz hesaplanmamış
     final isDelivered = status == 'delivered';
+
+    // Ödeme yöntemi göstergesi
+    String paymentIcon;
+    String paymentText;
+    Color paymentColor;
+    
+    switch (paymentMethod) {
+      case 'cash':
+        paymentIcon = '💵';
+        paymentText = 'NAKİT - Kapıda tahsil edilecek';
+        paymentColor = Colors.green;
+        break;
+      case 'card':
+        paymentIcon = '💳';
+        paymentText = 'KREDİ KARTI - POS ile tahsil edilecek';
+        paymentColor = Colors.blue;
+        break;
+      case 'online':
+        paymentIcon = '✅';
+        paymentText = 'ÇEVRİMİÇİ ÖDENDİ - Tahsil etmeyin';
+        paymentColor = Colors.orange;
+        break;
+      default:
+        paymentIcon = '❓';
+        paymentText = 'Ödeme yöntemi belirtilmemiş';
+        paymentColor = Colors.grey;
+    }
 
     return Card(
       elevation: 0,
@@ -1066,6 +1094,55 @@ class _DeliveryDetailsScreenSupabaseState
             const Text(
               'Ödeme Bilgileri',
               style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+            ),
+            const SizedBox(height: 16),
+            // KAPIDA TAHSİLAT BİLGİSİ (BELIRGIN)
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: paymentColor.withOpacity(0.1),
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: paymentColor, width: 2),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      Text(
+                        paymentIcon,
+                        style: const TextStyle(fontSize: 32),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              paymentText,
+                              style: const TextStyle(
+                                fontSize: 14,
+                                fontWeight: FontWeight.w600,
+                                color: Colors.black87,
+                              ),
+                            ),
+                            const SizedBox(height: 4),
+                            Text(
+                              '₺${amount.toStringAsFixed(2)}',
+                              style: const TextStyle(
+                                fontSize: 28,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.black,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
             ),
             const SizedBox(height: 16),
             _buildPaymentRow('Tutar', '₺${amount.toStringAsFixed(2)}'),

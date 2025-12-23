@@ -71,17 +71,33 @@ class _ProblemsScreenState extends State<ProblemsScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: const Color(0xFFF8F9FA),
       appBar: AppBar(
-        title: const Text('Bildirdiğim Sorunlar'),
-        backgroundColor: Colors.orange,
-        foregroundColor: Colors.white,
+        title: const Text(
+          'Bildirilen Sorunlar',
+          style: TextStyle(
+            fontWeight: FontWeight.w700,
+            fontSize: 18,
+            letterSpacing: -0.3,
+          ),
+        ),
+        backgroundColor: Colors.white,
+        foregroundColor: const Color(0xFF2D3436),
+        elevation: 0,
+        bottom: PreferredSize(
+          preferredSize: const Size.fromHeight(1),
+          child: Container(
+            color: Colors.grey.shade200,
+            height: 1,
+          ),
+        ),
       ),
       body: Column(
         children: [
-          // FİLTRE BUTONLARI
+          // FİLTRE BUTONLARI - Modern
           Container(
             padding: const EdgeInsets.all(16),
-            color: Colors.grey[100],
+            color: Colors.white,
             child: Row(
               children: [
                 _buildFilterChip('Tümü', 'all', _problems.length),
@@ -134,32 +150,43 @@ class _ProblemsScreenState extends State<ProblemsScreen> {
           _loadProblems();
         },
         child: Container(
-          padding: const EdgeInsets.symmetric(vertical: 12),
+          padding: const EdgeInsets.symmetric(vertical: 10),
           decoration: BoxDecoration(
-            color: isSelected ? Colors.orange : Colors.white,
-            borderRadius: BorderRadius.circular(12),
+            color: isSelected ? const Color(0xFF00B894) : Colors.white,
+            borderRadius: BorderRadius.circular(10),
             border: Border.all(
-              color: isSelected ? Colors.orange : Colors.grey[300]!,
+              color: isSelected ? const Color(0xFF00B894) : Colors.grey.shade300,
               width: 1.5,
             ),
+            boxShadow: isSelected
+                ? [
+                    BoxShadow(
+                      color: const Color(0xFF00B894).withOpacity(0.3),
+                      blurRadius: 8,
+                      offset: const Offset(0, 2),
+                    ),
+                  ]
+                : null,
           ),
           child: Column(
             children: [
               Text(
                 label,
                 style: TextStyle(
-                  color: isSelected ? Colors.white : Colors.grey[700],
-                  fontWeight: FontWeight.bold,
-                  fontSize: 14,
+                  color: isSelected ? Colors.white : Colors.grey.shade700,
+                  fontWeight: FontWeight.w600,
+                  fontSize: 13,
+                  letterSpacing: -0.2,
                 ),
               ),
-              const SizedBox(height: 4),
+              const SizedBox(height: 3),
               Text(
                 count.toString(),
                 style: TextStyle(
-                  color: isSelected ? Colors.white : Colors.orange,
-                  fontWeight: FontWeight.bold,
+                  color: isSelected ? Colors.white : const Color(0xFF00B894),
+                  fontWeight: FontWeight.w800,
                   fontSize: 18,
+                  letterSpacing: -0.5,
                 ),
               ),
             ],

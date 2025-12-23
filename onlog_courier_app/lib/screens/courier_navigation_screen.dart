@@ -4,9 +4,9 @@ import 'dart:async';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:geolocator/geolocator.dart';
 import 'tabs/home_tab_supabase.dart';
-import 'earnings_screen_supabase.dart';
+import 'modern_earnings_screen.dart'; // ✨ YENİ
 import 'performance_screen.dart';
-import 'profile_screen.dart';
+import 'modern_profile_screen.dart'; // ✨ YENİ
 import 'problems_screen.dart';
 import '../services/location_service.dart';
 
@@ -53,7 +53,7 @@ class _CourierNavigationScreenState extends State<CourierNavigationScreen> {
         courierId: widget.courierId,
         courierName: widget.courierName,
       ),
-      EarningsScreenSupabase(
+      ModernEarningsScreen( // ✨ YENİ modern kazanç sayfası
         key: const PageStorageKey('EarningsTab'),
         courierId: widget.courierId,
       ),
@@ -61,7 +61,7 @@ class _CourierNavigationScreenState extends State<CourierNavigationScreen> {
         key: const PageStorageKey('ProblemsTab'),
         courierId: widget.courierId,
       ),
-      const ProfileScreen(
+      const ModernProfileScreen( // ✨ YENİ modern profil sayfası
         key: PageStorageKey('ProfileTab'),
       ),
     ];

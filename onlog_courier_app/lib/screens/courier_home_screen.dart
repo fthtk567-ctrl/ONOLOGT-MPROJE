@@ -1,10 +1,10 @@
 ﻿gırıs yaotım import 'dart:async';
 import 'package:flutter/material.dart';
-import 'package:geolocator/geolocator.dart'; // 📍 Konum servisi
+import 'package:geolocator/geolocator.dart';
 import 'package:onlog_shared/services/supabase_service.dart';
-import '../widgets/modern_order_card.dart';
+import '../widgets/compact_order_card.dart'; // ✨ YENİ kompakt kart
 import 'delivery_details_screen_supabase.dart';
-import '../services/location_service.dart'; // 🌐 Global konum servisi
+import '../services/location_service.dart';
 
 class CourierHomeScreen extends StatefulWidget {
   final String courierId;
@@ -362,37 +362,74 @@ class _CourierHomeScreenState extends State<CourierHomeScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.grey[50],
+      backgroundColor: const Color(0xFFF8F9FA), // ✨ Daha modern açık gri
       body: CustomScrollView(
         slivers: [
-          // Modern App Bar
+          // ✨ Modern Minimal App Bar
           SliverAppBar(
-            expandedHeight: 120,
-            floating: false,
+            expandedHeight: 100,
+            floating: true,
             pinned: true,
-            backgroundColor: const Color(0xFF2E7D32),
+            elevation: 0,
+            backgroundColor: Colors.white,
             flexibleSpace: FlexibleSpaceBar(
               background: Container(
                 decoration: const BoxDecoration(
                   gradient: LinearGradient(
-                    colors: [Color(0xFF1B5E20), Color(0xFF4CAF50)],
+                    colors: [Color(0xFF00B894), Color(0xFF00A383)],
                     begin: Alignment.topLeft,
                     end: Alignment.bottomRight,
                   ),
                 ),
-              ),
-              title: Text(
-                'Merhaba ${widget.courierName} 👋',
-                style: const TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.white,
+                padding: const EdgeInsets.fromLTRB(20, 60, 20, 16),
+                child: Row(
+                  children: [
+                    Container(
+                      width: 44,
+                      height: 44,
+                      decoration: BoxDecoration(
+                        color: Colors.white.withOpacity(0.2),
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: const Icon(
+                        Icons.two_wheeler_rounded,
+                        color: Colors.white,
+                        size: 24,
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Text(
+                            'Merhaba ${widget.courierName.split(' ')[0]} 👋',
+                            style: const TextStyle(
+                              fontSize: 18,
+                              fontWeight: FontWeight.w700,
+                              color: Colors.white,
+                              letterSpacing: -0.3,
+                            ),
+                          ),
+                          Text(
+                            _isOnDuty ? '🟢 Mesaide' : '⚪ Mesai dışı',
+                            style: TextStyle(
+                              fontSize: 13,
+                              color: Colors.white.withOpacity(0.9),
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
                 ),
               ),
             ),
             actions: [
               IconButton(
-                icon: const Icon(Icons.refresh_rounded),
+                icon: const Icon(Icons.refresh_rounded, color: Colors.white),
                 onPressed: () {
                   setState(() => isLoading = true);
                   _loadOrders();
@@ -417,7 +454,7 @@ class _CourierHomeScreenState extends State<CourierHomeScreen> {
               child: Column(
                 children: [
                   _buildStatCards(),
-                  const SizedBox(height: 16),
+                  const SizedBox(height: 8),
                   _buildFilterChips(),
                 ],
               ),
@@ -460,22 +497,25 @@ class _CourierHomeScreenState extends State<CourierHomeScreen> {
                 delegate: SliverChildBuilderDelegate(
                   (context, index) {
                     final order = _filteredOrders[index];
-                    return Padding(
-                      padding: const EdgeInsets.only(bottom: 12),
-                      child: ModernOrderCard(
-                        order: order,
-                        onTap: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) => DeliveryDetailsScreenSupabase(
-                                orderId: order['id'],
-                                courierId: widget.courierId,
-                              ),
+                    return CompactOrderCard( // ✨ YENİ kompakt kart
+                      order: order,
+                      onTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => DeliveryDetailsScreenSupabase(
+                              orderId: order['id'],
+                              courierId: widget.courierId,
                             ),
-                          );
-                        },
-                      ),
+                          ),
+                        );
+                      },
+                      onAccept: order['status'] == 'WAITING_COURIER' 
+                          ? () => _acceptOrder(order['id'])
+                          : null,
+                      onReject: order['status'] == 'WAITING_COURIER'
+                          ? () => _rejectOrder(order['id'])
+                          : null,
                     );
                   },
                   childCount: _filteredOrders.length,
@@ -525,29 +565,44 @@ class _CourierHomeScreenState extends State<CourierHomeScreen> {
 
   Widget _buildStatCard(String title, String value, IconData icon, Color color) {
     return Container(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 14),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: color.withOpacity(0.3), width: 2),
+        borderRadius: BorderRadius.circular(12),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.05),
-            blurRadius: 10,
-            offset: const Offset(0, 4),
+            color: Colors.black.withOpacity(0.03),
+            blurRadius: 8,
+            offset: const Offset(0, 2),
           ),
         ],
       ),
       child: Column(
         children: [
-          Icon(icon, color: color, size: 28),
-          const SizedBox(height: 8),
+          Icon(icon, color: color, size: 22),
+          const SizedBox(height: 6),
           Text(
             value,
             style: TextStyle(
-              fontSize: 24,
-              fontWeight: FontWeight.bold,
+              fontSize: 20,
+              fontWeight: FontWeight.w700,
               color: color,
+              letterSpacing: -0.5,
+            ),
+          ),
+          const SizedBox(height: 2),
+          Text(
+            title,
+            style: TextStyle(
+              fontSize: 11,
+              color: Colors.grey.shade600,
+              fontWeight: FontWeight.w500,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
             ),
           ),
           const SizedBox(height: 4),
@@ -609,19 +664,13 @@ class _CourierHomeScreenState extends State<CourierHomeScreen> {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        gradient: LinearGradient(
-          colors: _isOnDuty 
-              ? [const Color(0xFF4CAF50), const Color(0xFF66BB6A)]
-              : [Colors.grey.shade400, Colors.grey.shade500],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-        ),
+        color: Colors.white,
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
-            color: (_isOnDuty ? Colors.green : Colors.grey).withOpacity(0.3),
+            color: Colors.black.withOpacity(0.04),
             blurRadius: 12,
-            offset: const Offset(0, 6),
+            offset: const Offset(0, 2),
           ),
         ],
       ),
@@ -629,19 +678,23 @@ class _CourierHomeScreenState extends State<CourierHomeScreen> {
         children: [
           // İkon
           Container(
-            padding: const EdgeInsets.all(12),
+            padding: const EdgeInsets.all(10),
             decoration: BoxDecoration(
-              color: Colors.white.withOpacity(0.2),
+              gradient: LinearGradient(
+                colors: _isOnDuty 
+                    ? [const Color(0xFF00D2A0), const Color(0xFF00B894)]
+                    : [Colors.grey.shade300, Colors.grey.shade400],
+              ),
               borderRadius: BorderRadius.circular(12),
             ),
             child: Icon(
-              _isOnDuty ? Icons.work_rounded : Icons.work_off_rounded,
+              _isOnDuty ? Icons.electric_bolt_rounded : Icons.bolt_outlined,
               color: Colors.white,
-              size: 32,
+              size: 24,
             ),
           ),
           
-          const SizedBox(width: 16),
+          const SizedBox(width: 14),
           
           // Metin
           Expanded(
@@ -649,21 +702,23 @@ class _CourierHomeScreenState extends State<CourierHomeScreen> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  _isOnDuty ? 'Mesaide' : 'Mesaide Değil',
+                  _isOnDuty ? 'Aktif Mesai' : 'Pasif Durum',
                   style: const TextStyle(
-                    color: Colors.white,
-                    fontSize: 20,
-                    fontWeight: FontWeight.bold,
+                    color: Color(0xFF2D3436),
+                    fontSize: 16,
+                    fontWeight: FontWeight.w700,
+                    letterSpacing: -0.3,
                   ),
                 ),
-                const SizedBox(height: 4),
+                const SizedBox(height: 3),
                 Text(
                   _isOnDuty 
-                      ? 'Yeni siparişler size atanacak' 
-                      : 'Sipariş almak için mesaiye başlayın',
+                      ? 'Siparişler sana yönlendiriliyor' 
+                      : 'Sipariş almak için aktif et',
                   style: TextStyle(
-                    color: Colors.white.withOpacity(0.9),
-                    fontSize: 13,
+                    color: Colors.grey.shade600,
+                    fontSize: 12,
+                    fontWeight: FontWeight.w500,
                   ),
                 ),
               ],
@@ -672,24 +727,88 @@ class _CourierHomeScreenState extends State<CourierHomeScreen> {
           
           // Switch Butonu
           _isTogglingDuty
-              ? const SizedBox(
-                  width: 24,
-                  height: 24,
+              ? SizedBox(
+                  width: 20,
+                  height: 20,
                   child: CircularProgressIndicator(
                     strokeWidth: 2,
-                    valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                    valueColor: AlwaysStoppedAnimation<Color>(
+                      _isOnDuty ? const Color(0xFF00B894) : Colors.grey.shade400
+                    ),
                   ),
                 )
               : Switch(
                   value: _isOnDuty,
                   onChanged: (value) => _toggleDutyStatus(),
-                  activeThumbColor: Colors.white,
-                  activeTrackColor: const Color(0xFF2E7D32),
-                  inactiveThumbColor: Colors.white,
-                  inactiveTrackColor: Colors.grey.shade700,
+                  activeColor: const Color(0xFF00B894),
+                  activeTrackColor: const Color(0xFF00B894).withOpacity(0.3),
+                  inactiveThumbColor: Colors.grey.shade400,
+                  inactiveTrackColor: Colors.grey.shade200,
                 ),
         ],
       ),
     );
+  }
+
+  // Sipariş kabul et
+  Future<void> _acceptOrder(String orderId) async {
+    try {
+      await SupabaseService.client
+          .from('delivery_requests')
+          .update({
+            'status': 'ACCEPTED',
+            'accepted_at': DateTime.now().toIso8601String(),
+          })
+          .eq('id', orderId);
+      
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('✅ Sipariş kabul edildi'),
+            backgroundColor: Colors.green,
+          ),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('❌ Hata: $e'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    }
+  }
+
+  // Sipariş reddet
+  Future<void> _rejectOrder(String orderId) async {
+    try {
+      await SupabaseService.client
+          .from('delivery_requests')
+          .update({
+            'rejected_at': DateTime.now().toIso8601String(),
+            'rejection_reason': 'Kurye tarafından reddedildi',
+          })
+          .eq('id', orderId);
+      
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('❌ Sipariş reddedildi'),
+            backgroundColor: Colors.orange,
+          ),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('❌ Hata: $e'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    }
   }
 }

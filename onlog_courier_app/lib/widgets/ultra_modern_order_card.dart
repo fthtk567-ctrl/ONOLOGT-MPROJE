@@ -534,10 +534,25 @@ class _UltraModernOrderCardState extends State<UltraModernOrderCard>
     try {
       final pickupLocation = widget.order['pickup_location'];
       if (pickupLocation is Map) {
-        return pickupLocation['address'] ?? 'Adres bilgisi yok';
+        final address = pickupLocation['address'] ?? '';
+        
+        // ⚠️ Yemek App test data kontrolü
+        if (address.contains('Test Mahallesi') || 
+            address.contains('Test Sokak') ||
+            address.isEmpty) {
+          // Test data veya boşsa merchant ismini göster
+          final merchantName = widget.order['merchant_name'];
+          if (merchantName != null && merchantName.toString().isNotEmpty) {
+            return merchantName.toString();
+          }
+          return 'Restoran Adresi';
+        }
+        
+        return address;
       }
       return 'Adres bilgisi yok';
     } catch (e) {
+      print('❌ Pickup adres parse hatası: $e');
       return 'Adres bilgisi yok';
     }
   }

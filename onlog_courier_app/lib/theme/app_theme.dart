@@ -4,14 +4,14 @@ import 'package:flutter/material.dart';
 /// Profesyonel, kompakt, animasyonlu tasarım
 class AppTheme {
   // Ana Renkler - Gradient destekli
-  static const primaryColor = Color(0xFF6C5CE7); // Mor
+  static const primaryColor = Color(0xFF00B894); // Fıstık Yeşili
   static const secondaryColor = Color(0xFF00B894); // Yeşil
   static const accentColor = Color(0xFFFF6B6B); // Kırmızı
   static const backgroundColor = Color(0xFFF8F9FA);
   
   // Gradient'ler
   static const primaryGradient = LinearGradient(
-    colors: [Color(0xFF6C5CE7), Color(0xFF5F4FD1)],
+    colors: [Color(0xFF00B894), Color(0xFF00A383)],
     begin: Alignment.topLeft,
     end: Alignment.bottomRight,
   );
