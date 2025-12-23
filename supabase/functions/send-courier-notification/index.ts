@@ -32,14 +32,17 @@ serve(async (req) => {
     const supabase = createClient(supabaseUrl, supabaseServiceKey)
 
     // Kurye OneSignal Player ID'sini al
+    console.log('🔍 Player ID arıyorum, Courier ID:', payload.courierId)
+    
     const { data: tokenData, error: tokenError } = await supabase
       .from('push_tokens')
       .select('player_id, platform')
       .eq('user_id', payload.courierId)
-      .eq('is_active', true)
       .order('updated_at', { ascending: false })
       .limit(1)
       .single()
+
+    console.log('📊 Database sonucu - tokenData:', tokenData, 'error:', tokenError)
 
     if (tokenError || !tokenData) {
       console.error('❌ OneSignal Player ID bulunamadı:', tokenError)
@@ -50,18 +53,30 @@ serve(async (req) => {
     }
 
     const playerId = tokenData.player_id
-    console.log('✅ OneSignal Player ID bulundu:', playerId.substring(0, 20) + '...')
+    console.log('✅ OneSignal Player ID bulundu:', playerId)
+    console.log('🔍 Player ID Detayları:')
+    console.log('   - Player ID:', playerId)
+    console.log('   - Player ID Type:', typeof playerId)
+    console.log('   - Player ID Length:', playerId?.length)
+    console.log('   - Platform:', tokenData.platform)
 
     // OneSignal credentials
     const ONESIGNAL_APP_ID = Deno.env.get('ONESIGNAL_APP_ID')!
-    const ONESIGNAL_REST_API_KEY = Deno.env.get('ONESIGNAL_REST_API_KEY')!
+    const ONESIGNAL_REST_API_KEY = Deno.env.get('ONESIGNAL_APP_REST_KEY')!
 
-    // OneSignal bildirim mesajını oluştur
+    console.log('🔑 OneSignal Credentials:')
+    console.log('   - App ID:', ONESIGNAL_APP_ID)
+    console.log('   - API Key başlangıç:', ONESIGNAL_REST_API_KEY?.substring(0, 20) + '...')
+
+    // OneSignal bildirim mesajını oluştur (v5 API format)
     const oneSignalMessage = {
       app_id: ONESIGNAL_APP_ID,
-      include_player_ids: [playerId],
-      headings: { tr: '🚀 Yeni Teslimat İsteği!' },
-      contents: { tr: `${payload.merchantName} - ${payload.deliveryFee} TL` },
+      include_aliases: {
+        onesignal_id: [playerId]
+      },
+      target_channel: 'push',
+      headings: { en: '🚀 Yeni Teslimat İsteği!' },
+      contents: { en: `${payload.merchantName} - ${payload.deliveryFee} TL` },
       data: {
         type: 'new_order',
         order_id: payload.orderId,
@@ -72,16 +87,18 @@ serve(async (req) => {
       ios_badgeType: 'Increase',
       ios_badgeCount: 1,
       priority: 10,
+      content_available: true,
     }
 
     console.log('📤 [OneSignal] Bildirim gönderiliyor...')
+    console.log('📨 OneSignal Message:', JSON.stringify(oneSignalMessage, null, 2))
 
     // OneSignal REST API'ye istek gönder
     const oneSignalResponse = await fetch('https://onesignal.com/api/v1/notifications', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': `Basic ${ONESIGNAL_REST_API_KEY}`,
+        'Authorization': `Key ${ONESIGNAL_REST_API_KEY}`,
       },
       body: JSON.stringify(oneSignalMessage),
     })
@@ -93,11 +110,13 @@ serve(async (req) => {
     }
 
     const oneSignalResult = await oneSignalResponse.json()
+    console.log('📦 OneSignal FULL Response:', JSON.stringify(oneSignalResult, null, 2))
     console.log('✅ OneSignal bildirimi gönderildi:', oneSignalResult)
 
     // Notification history'ye kaydet
     await supabase.from('notification_history').insert({
       user_id: payload.courierId,
+      notification_type: 'new_order', // ✅ EKLENEN ALAN
       title: '🚀 Yeni Teslimat İsteği!',
       body: `${payload.merchantName} - ${payload.deliveryFee} TL`,
       data: {

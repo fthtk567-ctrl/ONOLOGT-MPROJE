@@ -48,11 +48,22 @@ Future<void> saveOneSignalPlayerId(String userId) async {
     if (deviceState != null) {
       debugPrint('📱 OneSignal Player ID alındı: $deviceState');
       
-      // push_tokens tablosuna kaydet (fcm_tokens yerine)
-      await SupabaseService.client.from('push_tokens').upsert({
+      final platform = kIsWeb ? 'web' : (Platform.isIOS ? 'ios' : 'android');
+      
+      // ÖNCEKİ KAYITLARI SİL (eski Player ID'leri temizle)
+      await SupabaseService.client
+          .from('push_tokens')
+          .delete()
+          .eq('user_id', userId)
+          .eq('platform', platform);
+      
+      debugPrint('🗑️ Eski Player ID temizlendi');
+      
+      // YENİ Player ID'yi kaydet
+      await SupabaseService.client.from('push_tokens').insert({
         'user_id': userId,
         'player_id': deviceState,
-        'platform': kIsWeb ? 'web' : (Platform.isIOS ? 'ios' : 'android'),
+        'platform': platform,
         'updated_at': DateTime.now().toIso8601String(),
       });
       
@@ -171,6 +182,9 @@ class _OnLogCourierAppState extends State<OnLogCourierApp> with WidgetsBindingOb
         await SupabaseService.client.auth.signOut();
         return null;
       }
+      
+      // 🔔 OneSignal Player ID kaydet (her başlangıçta)
+      await saveOneSignalPlayerId(user.id);
       
       if (userData['status'] != 'approved' || userData['is_active'] != true) {
         await SupabaseService.client.auth.signOut();

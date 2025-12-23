@@ -185,45 +185,8 @@ class _CallCourierScreenState extends State<CallCourierScreen> {
       
       print('✅ DELIVERY REQUEST OLUŞTURULDU!');
       
-      // 🔔 KURYE BİLDİRİMİ - Edge Function ile HTTP POST
-      try {
-        print('📱 FCM bildirimi gönderiliyor...');
-        
-        // Direkt HTTP POST kullan (Web uyumlu) - TEST FUNCTION
-        final url = Uri.parse('https://oilldflywtzbrmpylxx.supabase.co/functions/v1/send-notification-v2');
-        final headers = {
-          'Content-Type': 'application/json',
-          'Authorization': 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9pbGxkZmx5d3R6YnJtcHlseHgiLCJyb2xlIjoiYW5vbiIsImlhdCI6MTc2MDY3MjgyOSwiZXhwIjoyMDc2MjQ4ODI5fQ.kwTQgWja1VJBNA4sXEbznmv9LMoyO_5rioaTaQXvKsM',
-        };
-        final body = {
-          'userId': assignedCourierId,
-          'title': 'Yeni Teslimat!',
-          'body': 'Yeni bir teslimat talebiniz var',
-          'icon': 'ic_stat_courier_app_icon', // 🔔 Notification icon
-          'data': {
-            'deliveryId': insertedDelivery['id'].toString(),
-            'type': 'delivery',
-          }
-        };
-        
-        final response = await http.post(
-          url,
-          headers: headers,
-          body: json.encode(body),
-        );
-        
-        print('📤 Response status: ${response.statusCode}');
-        print('📤 Response body: ${response.body}');
-        
-        if (response.statusCode == 200) {
-          print('✅ FCM bildirimi başarıyla gönderildi!');
-        } else {
-          print('⚠️ FCM bildirimi hatası: ${response.body}');
-        }
-      } catch (e) {
-        print('❌ FCM bildirimi gönderilemedi: $e');
-        // Hata olsa bile devam et - teslimat oluşturuldu
-      }
+      // 🔔 KURYE BİLDİRİMİ - Trigger otomatik gönderecek (OneSignal)
+      print('📱 Trigger otomatik bildirim gönderecek (OneSignal)...');
       
       // Finansal işlem kaydı da oluştur (opsiyonel - raporlama için)
       try {

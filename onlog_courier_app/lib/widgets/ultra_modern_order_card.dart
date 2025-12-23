@@ -48,8 +48,15 @@ class _UltraModernOrderCardState extends State<UltraModernOrderCard>
 
   @override
   Widget build(BuildContext context) {
-    final orderId = widget.order['order_number'] ?? 
-        'ONL-${widget.order['id']?.toString().substring(0, 8) ?? 'N/A'}';
+    // 🔥 Yemek App siparişlerinde External ID göster (YO-025014)
+    // Diğer siparişlerde ONL-... göster
+    final externalId = widget.order['external_order_id'];
+    final orderNumber = widget.order['order_number'];
+    
+    final orderId = externalId != null && externalId.toString().isNotEmpty
+        ? externalId.toString() // YO-025014
+        : (orderNumber ?? 'ONL-${widget.order['id']?.toString().substring(0, 8) ?? 'N/A'}');
+    
     final status = widget.order['status'] ?? 'Bilinmiyor';
     final amount = widget.order['declared_amount'] ?? 0.0;
     final merchantCommission = widget.order['merchant_commission'] ?? 0.0;
